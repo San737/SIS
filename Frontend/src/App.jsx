@@ -20,6 +20,8 @@ import ManageCourses from "./Pages/CollegeAdmin/ManageCourses.jsx";
 import AddCourse from "./Pages/CollegeAdmin/AddCourse.jsx";
 import ViewEnrollments from "./Pages/CollegeAdmin/ViewEnrollments.jsx";
 import SeatManagementPage from "./Pages/CollegeAdmin/SeatManagement.jsx";
+import StudentManagement from "./Pages/CollegeAdmin/StudentManagement.jsx";
+
 
 // Super Admin imports
 import SuperAdminDashboard from "./Pages/SuperAdmin/SuperAdminDashboard.jsx";
@@ -138,6 +140,15 @@ function App() {
             <ProtectedRoute
               roles={["ADMIN"]}
               element={<SeatManagementPage />}
+            />
+          }
+        />
+         <Route
+          path="/CollegeAdmin/StudentManagement"
+          element={
+            <ProtectedRoute
+              roles={["ADMIN"]}
+              element={<StudentManagement />}
             />
           }
         />
