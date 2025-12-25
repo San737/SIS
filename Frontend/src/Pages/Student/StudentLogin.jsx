@@ -26,8 +26,7 @@ export default function StudentLogin() {
       const data = await fetchApprovedColleges();
       setColleges(data || []);
     } catch (error) {
-      console.error("Error loading colleges:", error);
-      setError("Failed to load colleges. Please refresh the page.");
+      setError("Failed to load colleges. Please refresh.");
     } finally {
       setLoadingColleges(false);
     }
@@ -46,12 +45,16 @@ export default function StudentLogin() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!selectedCollege) return setError("Please select your college first.");
+
+    if (!selectedCollege)
+      return setError("Please select your college first.");
     if (selectedCollege === "NotListed")
       return setError("College not registered.");
-    if (!email || !password) return setError("Please fill all fields.");
-    setError("");
+    if (!email || !password)
+      return setError("Please fill all fields.");
+
     setIsSubmitting(true);
+    setError("");
 
     try {
       const user = await login({ email, password });
@@ -65,9 +68,16 @@ export default function StudentLogin() {
       const target = location.state?.from?.pathname || "/student/dashboard";
       nav(target, { replace: true });
     } catch (err) {
-      const message =
-        err?.response?.data?.message || err.message || "Login failed";
-      setError(message);
+      if (
+        err?.response?.status === 401 ||
+        err?.response?.status === 403
+      ) {
+        setError(
+          "⏳ Your account is pending college admin approval."
+        );
+      } else {
+        setError("Invalid email or password.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -75,45 +85,52 @@ export default function StudentLogin() {
 
   return (
     <div
-      className="relative min-h-screen w-full flex items-center justify-center bg-cover bg-center bg-no-repeat"
+      className="relative min-h-screen w-full flex items-center justify-center bg-cover bg-center"
       style={{
-        backgroundImage: `url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1920')`,
-        backgroundAttachment: "fixed",
+        backgroundImage:
+          "url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1920')",
       }}
     >
-      {/* Overlay for readability */}
       <div className="absolute inset-0 bg-black/50"></div>
 
-      {/* Form container */}
-      <div className="relative z-10 bg-white/90 backdrop-blur-md p-10 rounded-3xl shadow-2xl w-full max-w-md mx-4">
-        <h1 className="text-3xl font-extrabold text-center text-gray-900 mb-8">
+      <div className="relative z-10 bg-white/90 backdrop-blur-md p-10 rounded-3xl shadow-2xl w-full max-w-md">
+        <h1 className="text-3xl font-extrabold text-center mb-8">
           🎓 Student Login
         </h1>
 
-        {/* College selection */}
-        <label className="block text-gray-700 font-medium mb-2">
+        <label className="block font-medium mb-2">
           Select Your College
         </label>
         <select
           value={selectedCollege}
           onChange={handleCollegeSelect}
           disabled={loadingColleges}
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-6 focus:ring-2 focus:ring-indigo-400 focus:outline-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className="w-full border rounded-lg px-4 py-3 mb-4"
         >
           <option value="">
-            {loadingColleges ? "Loading colleges..." : "-- Choose College --"}
+            {loadingColleges
+              ? "Loading colleges..."
+              : "-- Choose College --"}
           </option>
           {colleges.map((college) => (
-            <option key={college.collegeId} value={college.collegeId}>
+            <option
+              key={college.collegeId}
+              value={college.collegeId}
+            >
               {college.collegeName}
             </option>
           ))}
-          <option value="NotListed">My College is not listed</option>
+          <option value="NotListed">
+            My College is not listed
+          </option>
         </select>
 
-        {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+        {error && (
+          <p className="text-red-500 text-sm mb-4">
+            {error}
+          </p>
+        )}
 
-        {/* Login form (only shows if valid college) */}
         {!error && selectedCollege && (
           <>
             <input
@@ -121,38 +138,33 @@ export default function StudentLogin() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-4 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              className="w-full border rounded-lg px-4 py-3 mb-3"
             />
             <input
               type="password"
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 mb-6 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              className="w-full border rounded-lg px-4 py-3 mb-6"
             />
 
             <button
               onClick={handleLogin}
               disabled={isSubmitting}
-              className="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg hover:from-indigo-700 hover:to-indigo-600 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 disabled:opacity-60"
             >
               {isSubmitting ? "Signing in..." : "Login"}
             </button>
 
-            <p className="text-sm text-gray-700 text-center mt-5">
+            <p className="text-sm text-center mt-5">
               Not registered yet?{" "}
               <span
                 onClick={() =>
                   nav("/student/register", {
-                    state: {
-                      college: selectedCollege,
-                      collegeName: colleges.find(
-                        (c) => c.collegeId === parseInt(selectedCollege)
-                      )?.collegeName,
-                    },
+                    state: { college: selectedCollege },
                   })
                 }
-                className="text-indigo-600 font-semibold cursor-pointer hover:underline"
+                className="text-indigo-600 font-semibold cursor-pointer"
               >
                 Register here
               </span>

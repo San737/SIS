@@ -38,10 +38,41 @@ export const deleteCourse = async (courseId) => {
   return response.data;
 };
 
+/* ========================= */
+/* 🔹 STUDENT MANAGEMENT 🔹 */
+/* ========================= */
+
+/** GET PENDING STUDENTS */
+export const fetchPendingStudents = async () => {
+  const response = await apiClient.get(
+    "/api/v1/college/students/pending"
+  );
+  return response.data;
+};
+
+/** APPROVE STUDENT */
+export const approveStudent = async (studentId) => {
+  const response = await apiClient.put(
+    `/api/v1/college/approve-student/${studentId}`
+  );
+  return response.data;
+};
+
+/** REJECT STUDENT */
+export const rejectStudent = async (studentId) => {
+  const response = await apiClient.put(
+    `/api/v1/college/reject-student/${studentId}`
+  );
+  return response.data;
+};
+
 export default {
   registerCollegeAdmin,
   fetchDashboard,
   fetchCourses,
   addCourse,
   deleteCourse,
+  fetchPendingStudents,
+  approveStudent,
+  rejectStudent,
 };
