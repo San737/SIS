@@ -1,6 +1,11 @@
 import { useEffect, useState, useCallback } from "react";
 import CollegeAdminLayout from "../../components/CollegeAdminLayout";
 import { fetchDepartments } from "../../services/publicService";
+import {
+  fetchPendingStudents,
+  approveStudent,
+  rejectStudent,
+} from "../../services/collegeAdminService";
 
 export default function StudentManagement() {
   const [students, setStudents] = useState([]);
@@ -10,6 +15,7 @@ export default function StudentManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  /* ---------------- Load Data ---------------- */
   useEffect(() => {
     loadStudentRequests();
   }, []);
@@ -19,31 +25,12 @@ export default function StudentManagement() {
       setLoading(true);
       setError(null);
 
-      // 🔴 Replace with real API calls
-      const response = {
-        data: [
-          {
-            id: 1001,
-            name: "Rahul Sharma",
-            email: "rahul@gmail.com",
-            department: "Computer Science",
-            status: "PENDING",
-          },
-          {
-            id: 1002,
-            name: "Ananya Rao",
-            email: "ananya@gmail.com",
-            department: "Electronics",
-            status: "PENDING",
-          },
-        ],
-      };
-
+      const studentsData = await fetchPendingStudents();
       const deptData = await fetchDepartments();
 
-      setStudents(response.data);
+      setStudents(studentsData);
+      setFilteredStudents(studentsData);
       setDepartments(Array.isArray(deptData) ? deptData : []);
-      setFilteredStudents(response.data);
     } catch (err) {
       console.error(err);
       setError("Failed to load student requests");
@@ -60,9 +47,10 @@ export default function StudentManagement() {
       const dept = departments.find(
         (d) => d.deptId === Number(selectedDepartment)
       );
+
       if (dept) {
         filtered = filtered.filter(
-          (s) => s.department === dept.deptName
+          (s) => s.departmentName === dept.deptName
         );
       }
     }
@@ -74,21 +62,26 @@ export default function StudentManagement() {
     filterStudents();
   }, [filterStudents]);
 
-  /* ---------------- Actions ---------------- */
+  /* ---------------- Approve / Reject ---------------- */
   const handleAction = async (studentId, action) => {
     try {
-      // 🔴 Replace with backend call
-      // await axios.post(`/college-admin/students/${studentId}/${action}`);
+      if (action === "approve") {
+        await approveStudent(studentId);
+      } else {
+        await rejectStudent(studentId);
+      }
 
+      // Remove student from UI after success
       setStudents((prev) =>
-        prev.filter((s) => s.id !== studentId)
+        prev.filter((s) => s.studentId !== studentId)
       );
     } catch (err) {
+      console.error(err);
       alert("Action failed. Please try again.");
     }
   };
 
-  /* ---------------- Loading ---------------- */
+  /* ---------------- Loading State ---------------- */
   if (loading) {
     return (
       <CollegeAdminLayout activePage="students">
@@ -104,28 +97,13 @@ export default function StudentManagement() {
     );
   }
 
-  /* ---------------- Error ---------------- */
+  /* ---------------- Error State ---------------- */
   if (error) {
     return (
       <CollegeAdminLayout activePage="students">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
-            <svg
-              className="w-16 h-16 text-red-500 mx-auto mb-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            <p className="text-gray-800 font-semibold mb-2">
-              {error}
-            </p>
+            <p className="text-red-600 font-semibold mb-3">{error}</p>
             <button
               onClick={loadStudentRequests}
               className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
@@ -138,6 +116,7 @@ export default function StudentManagement() {
     );
   }
 
+  /* ---------------- Main UI ---------------- */
   return (
     <CollegeAdminLayout activePage="students">
       {/* Top Bar */}
@@ -151,7 +130,7 @@ export default function StudentManagement() {
       </div>
 
       <div className="p-8">
-        {/* Filter Section */}
+        {/* Filter */}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
           <select
             value={selectedDepartment}
@@ -191,28 +170,29 @@ export default function StudentManagement() {
                     </th>
                   </tr>
                 </thead>
+
                 <tbody className="divide-y divide-gray-200">
                   {filteredStudents.map((student) => (
                     <tr
-                      key={student.id}
+                      key={student.studentId}
                       className="hover:bg-gray-50 transition-colors"
                     >
                       <td className="px-6 py-4 font-medium">
-                        {student.id}
+                        {student.studentId}
                       </td>
                       <td className="px-6 py-4">
-                        {student.name}
+                        {student.fullName}
                       </td>
                       <td className="px-6 py-4">
                         {student.email}
                       </td>
                       <td className="px-6 py-4">
-                        {student.department}
+                        {student.departmentName}
                       </td>
                       <td className="px-6 py-4 text-center space-x-2">
                         <button
                           onClick={() =>
-                            handleAction(student.id, "approve")
+                            handleAction(student.studentId, "approve")
                           }
                           className="px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700"
                         >
@@ -220,7 +200,7 @@ export default function StudentManagement() {
                         </button>
                         <button
                           onClick={() =>
-                            handleAction(student.id, "reject")
+                            handleAction(student.studentId, "reject")
                           }
                           className="px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700"
                         >
