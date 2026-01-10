@@ -11,8 +11,9 @@ export default function StudentRegister() {
   const location = useLocation();
 
   // Get college from login
-  const collegeFromLogin = location.state?.college || "";
-  const [college, setCollege] = useState(collegeFromLogin);
+  const collegeIdFromLogin = location.state?.college || "";
+  const collegeNameFromLogin = location.state?.collegeName || "";
+  const [college, setCollege] = useState("");
   const [collegeOptions, setCollegeOptions] = useState([]);
   const [departmentOptions, setDepartmentOptions] = useState([]);
   const [name, setName] = useState("");
@@ -58,7 +59,7 @@ export default function StudentRegister() {
       !phone ||
       !address ||
       !department ||
-      (!college && !collegeFromLogin)
+      (!college && !collegeIdFromLogin)
     ) {
       setError("Please fill in all fields.");
       return;
@@ -72,7 +73,7 @@ export default function StudentRegister() {
       setLoading(true);
       setError("");
 
-      const selectedCollegeId = college || collegeFromLogin;
+      const selectedCollegeId = college || collegeIdFromLogin;
       const registrationPayload = {
         fullName: name,
         email,
@@ -192,10 +193,10 @@ export default function StudentRegister() {
             </select>
 
             {/* College */}
-            {collegeFromLogin ? (
+            {collegeNameFromLogin ? (
               <input
                 type="text"
-                value={collegeFromLogin}
+                value={collegeNameFromLogin}
                 readOnly
                 className="w-full border border-gray-300 bg-gray-100 text-gray-700 rounded-lg px-4 py-2.5 mb-4 cursor-not-allowed text-sm"
               />

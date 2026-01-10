@@ -43,7 +43,7 @@ export const deleteCollege = async (collegeId) => {
   return response.data;
 };
 
-/** 🔥 GET ALL APPROVED COLLEGES (needed for delete mapping) */
+/**  GET ALL APPROVED COLLEGES (needed for delete mapping) */
 export const fetchAllColleges = async () => {
   const response = await apiClient.get("/api/v1/superadmin/colleges", {
     headers: getAuthHeader(),
@@ -56,5 +56,5 @@ export default {
   approveCollegeRequest,
   rejectCollegeRequest,
   deleteCollege,
-  fetchAllColleges, // ✅ FIXED — now exported
+  fetchAllColleges,
 };
